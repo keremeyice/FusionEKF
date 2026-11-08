@@ -1,8 +1,11 @@
 # FusionEKF
 
 A multi-sensor **error-state Kalman filter (ESKF)** for vehicle localization. It fuses a
-high-rate **IMU** with **GNSS**, **wheel speed** and **visual odometry**, and is written in
-modern C++23 on top of Eigen.
+high-rate **IMU** with **raw GNSS pseudorange and Doppler (tightly coupled)**, **wheel speed**
+and **visual odometry**, and is written in modern C++23 on top of Eigen.
+
+Tight coupling means the filter keeps working with fewer than four satellites and rejects
+multipath outliers per satellite, which is what makes urban driving work.
 
 ## Design goals
 
@@ -19,22 +22,35 @@ modern C++23 on top of Eigen.
 ## Architecture
 
 ```
-IMU ──► SampleBuffer<ImuSample> ──► propagate (strapdown, F, Q)
-                                         │  nominal state x, covariance P (15x15)
-GNSS  ─┐                                 ▼
-Wheel ─┼─► time-ordered measurement queue ──► model: h(x), H, R ──► ESKF update + reset
-Vision ┘
+IMU ──► SampleBuffer<ImuSample> ──► ECEF strapdown + clock model ──► x, P
+                                                                     │
+RINEX nav ──► ephemeris ──► satellite pos/vel/clock ─┐               ▼
+GNSS raw  ──► per-satellite pseudorange, Doppler ────┼─► TC GNSS model ─┐
+Wheel     ──► speed + non-holonomic constraints ─────┼─► wheel model  ──┼─► ESKF update
+Camera    ──► visual odometry ───────────────────────┘   vision model ──┘   (χ² gate, reset)
 ```
 
-Error state (15): position, velocity, attitude, accelerometer bias, gyroscope bias.
+Error state, expressed in ECEF:
+
+| Block | Dim |
+|---|---|
+| position, velocity, attitude | 3 + 3 + 3 |
+| accelerometer bias, gyroscope bias | 3 + 3 |
+| receiver clock bias, clock drift | 1 + 1 |
+| inter-system biases (multi-constellation) | N_sys − 1 |
+| odometer scale factor | 1 |
+| vision pose clones | 6 × N (dynamic) |
 
 ## Status
 
 - [x] Build system: CMake presets, warnings as errors, ASan/UBSan, GoogleTest
 - [ ] Sensor time types and a time-ordered sample buffer
 - [ ] SO(3) / quaternion utilities
-- [ ] Nominal and error state, IMU propagation
-- [ ] GNSS position/velocity update with lever arm and χ² gating
+- [ ] WGS-84 frames (ECEF / LLA / ENU), GNSS time scales
+- [ ] Nominal and error state, ECEF IMU propagation with receiver clock model
+- [ ] RINEX 3 parsing, broadcast ephemeris → satellite position / velocity / clock
+- [ ] Atmospheric and relativistic corrections, single-point positioning (SPP)
+- [ ] Tightly coupled pseudorange + Doppler update, lever arm, per-satellite χ² gating
 - [ ] Wheel speed + non-holonomic constraints
 - [ ] Visual odometry update (stochastic cloning)
 - [ ] Out-of-order / delayed measurement handling
