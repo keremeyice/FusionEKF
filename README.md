@@ -44,8 +44,12 @@ Error state, expressed in ECEF:
 ## Status
 
 - [x] Build system: CMake presets, warnings as errors, ASan/UBSan, GoogleTest
-- [ ] Sensor time types and a time-ordered sample buffer
+- [ ] Linear Kalman filter core + 1D constant-velocity demo
+- [ ] 2D simulator with CSV output
+- [ ] EKF with range measurements; 2D pseudoranges with receiver clock states
+- [ ] 2D IMU-driven propagation, wheel speed and non-holonomic constraints
 - [ ] SO(3) / quaternion utilities
+- [ ] Sensor time types and a time-ordered sample buffer
 - [ ] WGS-84 frames (ECEF / LLA / ENU), GNSS time scales
 - [ ] Nominal and error state, ECEF IMU propagation with receiver clock model
 - [ ] RINEX 3 parsing, broadcast ephemeris → satellite position / velocity / clock
@@ -73,8 +77,9 @@ Use `--preset release` for an optimized build.
 ## Layout
 
 ```
-include/fusion/   public headers (core/, sensors/, filter/, models/)
+include/fusion/   public headers (filter/, later core/, sensors/, models/)
 src/              implementations
+apps/             demo programs (e.g. car_1d_demo)
 tests/            GoogleTest unit tests
 cmake/            warnings, sanitizers, dependencies
 ```

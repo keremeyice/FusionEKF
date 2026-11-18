@@ -14,13 +14,10 @@ void KalmanFilter::predict(const Eigen::MatrixXd& F,
 void KalmanFilter::update(const Eigen::VectorXd& z,
                           const Eigen::MatrixXd& H,
                           const Eigen::MatrixXd& R) {
-  Eigen::VectorXd y(1);
-  Eigen::MatrixXd S(1,1);
-  Eigen::MatrixXd K(2,1);
-  y = z - H * x_;
-  S = H * P_ * H.transpose() + R;
-  K = P_ * H.transpose() * S.inverse();
-  x_ = x_ + K* y;
+  const Eigen::VectorXd y = z - H * x_;
+  const Eigen::MatrixXd S = H * P_ * H.transpose() + R;
+  const Eigen::MatrixXd K = P_ * H.transpose() * S.inverse();
+  x_ = x_ + K * y;
   P_ = P_ - K * H * P_;
 }
 
