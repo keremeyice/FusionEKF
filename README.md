@@ -44,8 +44,8 @@ Error state, expressed in ECEF:
 ## Status
 
 - [x] Build system: CMake presets, warnings as errors, ASan/UBSan, GoogleTest
-- [ ] Linear Kalman filter core + 1D constant-velocity demo
-- [ ] 2D simulator with CSV output
+- [x] Linear Kalman filter core + 1D constant-velocity demo
+- [ ] 2D circle simulator, CSV output and plotting
 - [ ] EKF with range measurements; 2D pseudoranges with receiver clock states
 - [ ] 2D IMU-driven propagation, wheel speed and non-holonomic constraints
 - [ ] SO(3) / quaternion utilities
